@@ -16,8 +16,8 @@ Addon.data.chores.professionAlchemy = {
                 {
                     key = 'mob',
                     entries = {
-                        { quest=70504, item=198963, desc='Decayed' }, -- Decaying Phlegm
-                        { quest=70511, item=198964, desc='Elemental' }, -- Elementious Splinter
+                        { quest=70504, item=198963, desc='Decayed', way="2024,11.75,36.05,Decayed Elder" }, -- Decaying Phlegm
+                        { quest=70511, item=198964, desc='Elemental', way="2022,52.2,56.2,Encroaching Downpour" }, -- Elementious Splinter
                     },
                 },
                 {

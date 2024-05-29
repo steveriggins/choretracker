@@ -16,8 +16,8 @@ Addon.data.chores.professionEnchanting = {
                 {
                     key = 'mob',
                     entries = {
-                        { quest=70514, item=198967, desc='Arcane' }, -- Primordial Aether
-                        { quest=70515, item=198968, desc='Primalist' }, -- Primalist Charm
+                        { quest=70514, item=198967, desc='Arcane', way="2133,46,16,Unshackled Energy" }, -- Primordial Aether
+                        { quest=70515, item=198968, desc='Primalist', way="2025,53.2,65.6,Earthshaker Marauder" }, -- Primalist Charm
                     },
                 },
                 {

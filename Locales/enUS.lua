@@ -2,7 +2,6 @@ local L = LibStub('AceLocale-3.0'):NewLocale('ChoreTracker', 'enUS', true)
 
 L['key_binding:toggle'] = 'Toggle ChoreTracker window'
 
-L['option:general:awakenedTimers'] = 'Only show awakened timers'
 L['option:general:showCompletedSections'] = 'Show completed sections'
 L['option:general:showCompleted'] = 'Show completed chores'
 L['option:general:showObjectives'] = 'Show chore objectives'
@@ -114,7 +113,6 @@ L['chore:professions:dragonflight:quests:skinVerdantGladewarden'] = 'Skin Verdan
 
 L['chore:professions:event:quests:darkmoonFaire'] = 'Darkmoon Faire'
 
-L['timer:bigDig'] = 'Big Dig'
 L['timer:communityFeast'] = 'Community Feast'
 L['timer:dragonbaneKeep'] = 'Dragonbane Keep'
 L['timer:dreamsurge'] = 'Dreamsurge'

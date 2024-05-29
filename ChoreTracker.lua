@@ -23,7 +23,6 @@ local defaultDb = {
         },
         general = {
             display = {
-                awakenedTimers = false,
                 showCompleted = false,
                 showCompletedSections = true,
                 showObjectives = 'ALL',

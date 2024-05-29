@@ -1,3 +1,5 @@
+local addonName, Addon = ...
+local L = Addon.L
 local AceGUI = LibStub('AceGUI-3.0')
 
 -- Lua APIs
@@ -74,6 +76,40 @@ do
         this.lockButton:SetNormalTexture([[Interface\Addons\ChoreTracker\Assets\unlocked]])
         this.lockButton:SetHighlightTexture([[Interface\Addons\ChoreTracker\Assets\unlocked]])
         setDesaturation(this.lockButton)
+    end
+
+    local function tomTomButtonButtonClick(this)
+        local self = this:GetParent().obj
+        local displayModule = Addon:GetModule('Display')
+        local mapid = "2024"
+        local x = "11.75"
+        local y = "36.05"
+
+        if TomTom then
+        PlaySound(SOUNDKIT.UI_MAP_WAYPOINT_CLICK_TO_PLACE);
+
+        local icon = "Interface\\AddOns\\ChoreTracker\\Assets\\tom";
+        local icon_size = 12;
+
+        local waypoints = displayModule:GetWaypoints()
+
+        if waypoints ~= nil then
+            print("waypoints is not nil")
+            for _, waypoint in ipairs(waypoints) do
+                local mapID, x, y, desc = waypoint:match("([^,]+),([^,]+),([^,]+),([^,]+)")
+                 TomTom:AddWaypoint(tonumber(mapID), tonumber(x)/100, tonumber(y)/100, {
+                    title = desc,
+                    minimap_icon = icon,
+                    minimap_icon_size = icon_size,
+                    worldmap_icon = icon,
+                    worldmap_icon_size = icon_size,
+                    from = "ChoreTracker",
+                    minimap = true
+                    })
+                    end
+            end
+        end
+
     end
 
     local function lockButtonOnClick(this)
@@ -208,6 +244,19 @@ do
         -- self.sizer_e[func](self.sizer_e)
     end
 
+    local function SplitTomTom(way)
+        if way then
+            return
+        end
+
+        local separator = ","
+        local t={}
+        for str in string.gmatch(way, "([^"..sep.."]+)") do
+            table.insert(t, str)
+        end
+        return t
+    end
+
     local function Constructor()
         local frame = CreateFrame('Frame', nil, UIParent, 'BackdropTemplate')
         local self = {}
@@ -261,6 +310,21 @@ do
         titleText:SetText('ChoreTracker')
 
         self.titleText = titleText
+
+        -- TomTom button
+        if TomTom then
+            local tomTomButton = CreateFrame('Button', nil, frame)
+            tomTomButton.obj = frame
+            tomTomButton:SetPoint('TOPRIGHT', -60, -3)
+            tomTomButton:SetSize(16, 16)
+
+            tomTomButton:SetScript('OnClick', tomTomButtonButtonClick)
+
+            tomTomButton:SetNormalTexture([[Interface\Addons\ChoreTracker\Assets\arrow]])
+            tomTomButton:SetHighlightTexture([[Interface\Addons\ChoreTracker\Assets\arrow]])
+
+            self.tomTomButton = tomTomButton
+        end
 
         -- Lock button
         local lockButton = CreateFrame('Button', nil, frame)

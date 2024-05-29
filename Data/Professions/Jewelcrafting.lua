@@ -16,8 +16,8 @@ Addon.data.chores.professionJewelcrafting = {
                 {
                     key = 'mob',
                     entries = {
-                        { quest=70520, item=198973, desc='Elemental' }, -- Incandescent Curio
-                        { quest=70521, item=198974, desc='Dragonkin' }, -- Elegantly Engraved Embellishment
+                        { quest=70520, item=198973, desc='Elemental', way="2022,52.5,32.5,Stone Elementals" }, -- Incandescent Curio
+                        { quest=70521, item=198974, desc='Dragonkin', way="2025,47.89,59.41,Rebel Bruisers"}, -- Elegantly Engraved Embellishment
                     },
                 },
                 {

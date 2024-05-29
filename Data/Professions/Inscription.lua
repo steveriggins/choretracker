@@ -16,8 +16,8 @@ Addon.data.chores.professionInscription = {
                 {
                     key = 'mob',
                     entries = {
-                        { quest=70518, item=198971, desc='Djaradin' }, -- Curious Djaradin Rune
-                        { quest=70519, item=198972, desc='Dragonkin' }, -- Draconic Glamour
+                        { quest=70518, item=198971, desc='Djaradin', way="2133,43.32,34.39,Djaradin" }, -- Curious Djaradin Rune
+                        { quest=70519, item=198972, desc='Dragonkin', way="2025,45.76,56.59,Four-legged Dragons" }, -- Draconic Glamour
                     },
                 },
                 {

@@ -17,7 +17,6 @@ local CDAT_CompareCalendarTime = C_DateAndTime.CompareCalendarTime
 local CDAT_GetCalendarTimeFromEpoch = C_DateAndTime.GetCalendarTimeFromEpoch
 local CDAT_GetCurrentCalendarTime = C_DateAndTime.GetCurrentCalendarTime
 local CDAT_GetSecondsUntilWeeklyReset = C_DateAndTime.GetSecondsUntilWeeklyReset
-local CMI_GetModifiedInstanceInfoFromMapID = C_ModifiedInstance.GetModifiedInstanceInfoFromMapID
 
 local REGION_OFFSET = {
     [1] = -(7 * 60 * 60), -- US events use PST (-0700 UTC)
@@ -309,7 +308,6 @@ function Module:Redraw(changed)
 
     -- Timers
     if #self.enabledTimers > 0 then
-        local awakenedTimers = Addon.db.profile.general.display.awakenedTimers
         local timerFrame = self:GetSectionFrame('timers')
 
         if changed == nil or changed.timers ~= nil then
@@ -317,29 +315,24 @@ function Module:Redraw(changed)
 
             local now = time()
             for _, timerData in ipairs(self.enabledTimers) do
-                if (awakenedTimers == false or
-                    timerData.awakenedMap == nil or
-                    CMI_GetModifiedInstanceInfoFromMapID(timerData.awakenedMap) ~= nil
-                ) then
-                    local name = L['timer:' .. timerData.key]
-                    local timer = TimersModule.timers[timerData.key]
+                local name = L['timer:' .. timerData.key]
+                local timer = TimersModule.timers[timerData.key]
 
-                    local labelText
+                local labelText
 
-                    if timer == nil then
-                        labelText = '|cFF888888[|r???|cFF888888]|r ' .. STATUS_COLOR[0] .. name .. '|r'
-                    elseif timer.startsAt <= now and timer.endsAt >= now then
-                        labelText = '|cFF888888[|r' .. STATUS_COLOR[2] .. self:GetDuration(timer.endsAt - now) ..
-                            '|cFF888888]|r ' .. STATUS_COLOR[2] .. name .. '|r'
-                        -- timeText = self:GetDuration(timer.endsAt - now)
-                    else
-                        local color = (timer.startsAt - now) <= 300 and STATUS_COLOR[1] or ''
-                        labelText = '|cFF888888[|r' .. color .. self:GetDuration(timer.startsAt - now) ..
-                            '|r|cFF888888]|r ' .. name .. '|r'
-                    end
-
-                    self:AddLine(timerFrame, labelText)
+                if timer == nil then
+                    labelText = '|cFF888888[|r???|cFF888888]|r ' .. STATUS_COLOR[0] .. name .. '|r'
+                elseif timer.startsAt <= now and timer.endsAt >= now then
+                    labelText = '|cFF888888[|r' .. STATUS_COLOR[2] .. self:GetDuration(timer.endsAt - now) ..
+                        '|cFF888888]|r ' .. STATUS_COLOR[2] .. name .. '|r'
+                    -- timeText = self:GetDuration(timer.endsAt - now)
+                else
+                    local color = (timer.startsAt - now) <= 300 and STATUS_COLOR[1] or ''
+                    labelText = '|cFF888888[|r' .. color .. self:GetDuration(timer.startsAt - now) ..
+                        '|r|cFF888888]|r ' .. name .. '|r'
                 end
+
+                self:AddLine(timerFrame, labelText)
             end
         end
 
@@ -743,6 +736,107 @@ function Module:GetCachedItem(itemId)
 
     return itemInfo
 end
+
+-- Returns an dictionary of waypoints for mobs that need to be killed this week
+-- looks at the way field of the Addon.data.chores.* tables, where the table contains a
+-- `drops` table, and the key is `mob`
+-- Cribbed from Freddies's GetSections and GetSectionDrops functions just as a POC
+-- Should be refactored.
+function Module:GetWaypoints()
+    local waypoints = {}
+
+    local showCompletedSections = Addon.db.profile.general.display.showCompletedSections
+    local showCompletedChores = Addon.db.profile.general.display.showCompleted
+    local showObjectives = Addon.db.profile.general.display.showObjectives
+    local weeklyReset = time() + CDAT_GetSecondsUntilWeeklyReset()
+    local week = Addon.db.global.questWeeks[weeklyReset] or {}
+
+    for _, section in ipairs(self.sections) do
+        section.completed = 0
+        section.total = 0
+        section.waypoints = {}
+
+        for _, chore in ipairs(section.chores) do
+            local quest = ScannerModule.quests[chore.data.requiredQuest]
+            if chore.data.requiredQuest == nil or (quest ~= nil and quest.status == 2) then
+                if chore.typeKey == 'drops' then
+                    self:GetSectionWaypoints(section, chore, waypoints)
+                end
+            end
+        end
+    end
+
+    return waypoints
+end
+
+function Module:GetSectionWaypoints(section, chore, waypoints)
+    local grouped = {}
+
+    for _, choreEntry in ipairs(chore.data.entries) do
+        local choreState
+        if chore.data.groupSameItem == true then
+            if grouped[choreEntry.item] == nil then
+                grouped[choreEntry.item] = true
+                choreState = {
+                    status = 0,
+                    completed = 0,
+                    total = 0,
+                }
+
+                for _, otherEntry in ipairs(chore.data.entries) do
+                    if otherEntry.item == choreEntry.item then
+                        section.total = section.total + 1
+                        choreState.total = choreState.total + 1
+
+                        local otherState = ScannerModule.quests[otherEntry.quest]
+                        if otherState ~= nil and otherState.status == 2 then
+                            section.completed = section.completed + 1
+                            choreState.completed = choreState.completed + 1
+                        end
+                    end
+                end
+
+                if choreState.completed > 0 and choreState.completed < choreState.total then
+                    choreState.status = 1
+                elseif choreState.completed == choreState.total then
+                    choreState.status = 2
+                end
+            end
+        else
+            section.total = section.total + 1
+
+            choreState = ScannerModule.quests[choreEntry.quest]
+            if choreState ~= nil and choreState.status == 2 then
+                section.completed = section.completed + 1
+            end
+        end
+
+
+
+        if choreState ~= nil and (choreState.status < 2) then
+            if choreEntry.way then
+                table.insert(
+                    waypoints,
+                    choreEntry.way
+                    )
+            end
+        end
+    end
+end
+
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
 
 -- Global function for key binding
 function ChoreTracker_ToggleShown()
